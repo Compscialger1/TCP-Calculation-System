@@ -3,15 +3,19 @@ import java.io.*;
 import  java.net.*;
 import java.util.concurrent.*;
 
-/*handles individual client connections
- Implements the calculation protocol
- Validate inputs and performs operations*/
-class ClientHandler implements Runnable {
-    private Socket clientSocket;
-    private OperationLogger logger;
-    private BufferedReader in;
-    private PrintWriter out;
-    private String clientInfo;
+/*
+tasks:
+handle ndividual client connections
+ Implement the calculation protocol
+ Validate inputs and performs operations
+    Log operations and errors
+     */
+class ClientHandler implements Runnable { //runnable is an operation that does not return result 
+    private Socket clientSocket; //client socket 
+    private OperationLogger logger; //logger instance
+    private BufferedReader in; //input stream from client
+    private PrintWriter out; //output stream to client
+    private String clientInfo; //client info string
 //Constructor for ClientHandler 
     public ClientHandler(Socket socket, OperationLogger logger) {
         this.clientSocket = socket;
@@ -20,31 +24,34 @@ class ClientHandler implements Runnable {
                          ":" + socket.getPort();
     }
 //Main run method for handling client communication
-    @Override
+    @Override //Override run method from Runnable interface
     public void run() {
         try {
             in = new BufferedReader(
-                new InputStreamReader(clientSocket.getInputStream())
+                new InputStreamReader(clientSocket.getInputStream()) //read input from client
             );
-            out = new PrintWriter(clientSocket.getOutputStream(), true);
+            out = new PrintWriter(clientSocket.getOutputStream(), true); //write output to client , 
+            // java persistent API  JPA for flushing output stream
+
+             //Variables to hold calculation state
 
             String line;
             Double number1 = null;
             Double number2 = null;
             String operator = null;
 
-            while ((line = in.readLine()) != null) {
-                line = line.trim();
+            while ((line = in.readLine()) != null) { //read lines from client
+                line = line.trim(); //trim whitespace
                 
-                if (line.isEmpty()) continue;
+                if (line.isEmpty()) continue; //ignore empty lines
 
-                // Parse protocol messages
+                //  protocol messages
                 if (line.startsWith("NUMBER:")) {
-                    String valueStr = line.substring(7).trim();
+                    String valueStr = line.substring(7).trim(); //extract number value
                     try {
-                        double value = Double.parseDouble(valueStr);
-                        if (number1 == null) {
-                            number1 = value;
+                        double value = Double.parseDouble(valueStr); //make type double
+                        if (number1 == null) { 
+                            number1 = value; //first number
                             logger.log("INPUT", clientInfo + " | NUMBER1: " + value);
                         } else if (number2 == null) {
                             number2 = value;
@@ -60,7 +67,7 @@ class ClientHandler implements Runnable {
                         continue;
                     }
                 } 
-                else if (line.startsWith("OPERATOR:")) {
+                else if (line.startsWith("OPERATOR:")) { //extract operator
                     operator = line.substring(9).trim();
                     logger.log("INPUT", clientInfo + " | OPERATOR: " + operator);
                     
@@ -92,12 +99,12 @@ class ClientHandler implements Runnable {
         } catch (IOException e) {
             logger.log("ERROR", clientInfo + " | Connection error: " + e.getMessage());
         } finally {
-            cleanup();
+            cleanup(); //call cleanup method
         }
     }
 
     
-     //Validates operator
+     //Validates operator method 
     private boolean isValidOperator(String op) {
         return op.equals("+") || op.equals("-") || op.equals("*") || op.equals("/");
     }
@@ -134,7 +141,7 @@ class ClientHandler implements Runnable {
             
             String operation = num1 + " " + op + " " + num2 + " = " + result;
             logger.log("CALCULATION", clientInfo + " | " + operation);
-            System.out.println("→ Calculation: " + operation + " [" + clientInfo + "]");
+            System.out.println("Calculation: " + operation + " [" + clientInfo + "]");
             
         } catch (Exception e) {
             sendError("Calculation error: " + e.getMessage());

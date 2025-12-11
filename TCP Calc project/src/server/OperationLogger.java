@@ -5,7 +5,8 @@ import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-
+/*logger tasks :
+log operations with types : error,result,input,system,client connection, calculation,server start with format */
 public class OperationLogger {
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private String logFilePath;
