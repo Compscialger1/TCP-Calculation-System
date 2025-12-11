@@ -1,238 +1,214 @@
+package client ;
 import java.io.*;
 import java.net.*;
 import java.util.Scanner;
 
 public class TCPCalculationClient {
+    private static final String SERVER_HOST = "localhost";
+    private static final int SERVER_PORT = 8080;
     
-    // server config
-    
-    private static final String SERVER_IP = "localhost";  // ip ml server
-    private static final int SERVER_PORT = 12345;         // port ml server
-    
-    
-    // Main
-    public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        
-        displayWelcomeMessage();
-        
-        boolean running = true;
-        
-        while (running) {
-            try {
-                // Get calc input from user
-                CalculationInput input = getUserInput(scanner);
-                
-                // protocol format 
-                String request = formatRequest(input);
-                System.out.println("\n[DEBUG] Formatted request to send:");
-                System.out.println("---");
-                System.out.println(request);
-                System.out.println("---");
-                
-            
-                // server connection
-                // Uncomment when server is ready
-                /*
-                System.out.println("\n[CONNECTING] Attempting to connect to server...");
-                String serverResponse = connectAndSend(request);
-                displayResult(serverResponse);
-                */
-                
-                //testing, remove when server is ready
-                System.out.println("\n[MOCK MODE] Server connection not implemented yet.");
-                System.out.println("Waiting for Person 1 to complete TCP server.");
-                String mockResponse = generateMockResponse(input);
-                displayResult(mockResponse);
-                
-            } catch (Exception e) {
-                System.out.println("\n[ERROR] Client error: " + e.getMessage());
-            }
-            
-        
-            running = askToContinue(scanner);
-        }
-        
-        System.out.println("\n[INFO] TCP Calculation Client shutting down. Goodbye!");
-        scanner.close();
+    private Socket socket;
+    private BufferedReader in;
+    private PrintWriter out;
+    private Scanner scanner;
+    private boolean connected;
+
+    public TCPCalculationClient() {
+        this.scanner = new Scanner(System.in);
+        this.connected = false;
     }
-    
-    // user input 
-    
-    private static void displayWelcomeMessage() {
-        System.out.println("=".repeat(50));
-        System.out.println("TCP CALCULATION CLIENT");
-        System.out.println("=".repeat(50));
-        System.out.println("Server: " + SERVER_IP + ":" + SERVER_PORT);
-        System.out.println("Protocol: NUMBER:<value>, OPERATOR:<+|-|*|/>");
-        System.out.println("=".repeat(50) + "\n");
-    }
-    
-    private static CalculationInput getUserInput(Scanner scanner) {
-        CalculationInput input = new CalculationInput();
-        
-        System.out.println("\n" + "=".repeat(30));
-        System.out.println("ENTER CALCULATION");
-        System.out.println("=".repeat(30));
-        
-        input.num1 = getValidNumber(scanner, "Enter first number: ");
-        input.num2 = getValidNumber(scanner, "Enter second number: ");
-        input.operator = getValidOperator(scanner);
-        
-        return input;
-    }
-    
-    private static double getValidNumber(Scanner scanner, String prompt) {
-        while (true) {
-            System.out.print(prompt);
-            try {
-                return Double.parseDouble(scanner.nextLine().trim());
-            } catch (NumberFormatException e) {
-                System.out.println("[ERROR] Invalid number! Please enter a valid number (e.g., 5, 3.14, -2.5)");
-            }
-        }
-    }
-    
-    private static char getValidOperator(Scanner scanner) {
-        final String validOperators = "+-*/";
-        
-        while (true) {
-            System.out.print("Enter operator (+, -, *, /): ");
-            String input = scanner.nextLine().trim();
-            
-            if (input.length() == 1 && validOperators.contains(input)) {
-                return input.charAt(0);
-            }
-            System.out.println("[ERROR] Invalid operator! Please use one of: +, -, *, /");
-        }
-    }
-    
-    private static boolean askToContinue(Scanner scanner) {
-        while (true) {
-            System.out.print("\nPerform another calculation? (yes/no): ");
-            String choice = scanner.nextLine().trim().toLowerCase();
-            
-            if (choice.equals("yes") || choice.equals("y")) {
-                return true;
-            } else if (choice.equals("no") || choice.equals("n")) {
-                return false;
-            } else {
-                System.out.println("[ERROR] Please enter 'yes' or 'no'");
-            }
-        }
-    }
-    
-    private static String formatRequest(CalculationInput input) {
-        // protocol format : NUMBER:<value> (each on separate line)
-        return "NUMBER:" + input.num1 + "\n" +
-               "NUMBER:" + input.num2 + "\n" +
-               "OPERATOR:" + input.operator;
-    }
-    
-    
-    // server connection
-    
-    private static String connectAndSend(String request) {
-        //replace with actual implementation when server is ready
-        // need server for connection timeout requirements
-        // need server for error response formats
-        
-        /*
-        implementation
-        
-        try (Socket socket = new Socket(SERVER_IP, SERVER_PORT)) {
-            socket.setSoTimeout(5000); // 5 second timeout
-            
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            
-            // Send request
-            out.print(request);
-            out.flush();
-            
-            // Read response
-            StringBuilder response = new StringBuilder();
-            String line;
-            while ((line = in.readLine()) != null) {
-                response.append(line);
-                if (in.ready()) response.append("\n");
-            }
-            
-            return response.toString();
-            
-        } catch (SocketTimeoutException e) {
-            return "ERROR: Server timeout - no response after 5 seconds";
-        } catch (ConnectException e) {
-            return "ERROR: Cannot connect to server at " + SERVER_IP + ":" + SERVER_PORT;
-        } catch (IOException e) {
-            return "ERROR: Network error - " + e.getMessage();
-        }
-        */
-        
-        return "ERROR: Server connection not implemented yet";
-    }
-    
-    // response handling
-    
-    private static void displayResult(String response) {
-        System.out.println("\n" + "=".repeat(30));
-        System.out.println("RESULT");
-        System.out.println("=".repeat(30));
-        
-        if (response.startsWith("RESULT:")) {
-            String result = response.substring(7);
-            System.out.println("✓ Success: " + result);
-        } else if (response.startsWith("ERROR:")) {
-            String error = response.substring(6);
-            System.out.println("✗ Error: " + error);
-        } else {
-            System.out.println("? Unknown response format: " + response);
-        }
-    }
-    
-    // test response
-    
-    private static String generateMockResponse(CalculationInput input) {
+
+    /**
+     * Connects to the calculation server
+     */
+    public boolean connect() {
         try {
-            double result;
+            socket = new Socket(SERVER_HOST, SERVER_PORT);
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            out = new PrintWriter(socket.getOutputStream(), true);
+            connected = true;
             
-            switch (input.operator) {
-                case '+':
-                    result = input.num1 + input.num2;
-                    break;
-                case '-':
-                    result = input.num1 - input.num2;
-                    break;
-                case '*':
-                    result = input.num1 * input.num2;
-                    break;
-                case '/':
-                    if (input.num2 == 0) {
-                        return "ERROR:Division by zero";
-                    }
-                    result = input.num1 / input.num2;
-                    break;
-                default:
-                    return "ERROR:Invalid operator";
-            }
+            System.out.println("✓ Connected to server at " + SERVER_HOST + ":" + SERVER_PORT);
+            System.out.println("✓ Ready to send calculations\n");
+            return true;
             
-            // Format to 2 decimal places if needed
-            if (result == (long) result) {
-                return "RESULT:" + (long) result;
-            } else {
-                return "RESULT:" + String.format("%.2f", result);
+        } catch (UnknownHostException e) {
+            System.err.println("✗ Error: Unknown host " + SERVER_HOST);
+            return false;
+        } catch (IOException e) {
+            System.err.println("✗ Error: Could not connect to server");
+            System.err.println("  Make sure the server is running on port " + SERVER_PORT);
+            return false;
+        }
+    }
+
+    /**
+     * Main client loop - handles user interaction
+     */
+    public void start() {
+        if (!connected) {
+            System.err.println("✗ Not connected to server");
+            return;
+        }
+
+        System.out.println("========================================");
+        System.out.println("   TCP CALCULATION CLIENT");
+        System.out.println("========================================");
+        System.out.println("Commands:");
+        System.out.println("  - Enter two numbers and an operator");
+        System.out.println("  - Type 'exit' or 'quit' to disconnect");
+        System.out.println("========================================\n");
+
+        try {
+            while (connected) {
+                // Get first number
+                System.out.print("Enter first number (or 'exit' to quit): ");
+                String input1 = scanner.nextLine().trim();
+                
+                if (input1.equalsIgnoreCase("exit") || input1.equalsIgnoreCase("quit")) {
+                    System.out.println("\n→ Disconnecting...");
+                    break;
+                }
+
+                // Validate first number
+                double num1;
+                try {
+                    num1 = Double.parseDouble(input1);
+                } catch (NumberFormatException e) {
+                    System.err.println("✗ Invalid number format. Please try again.\n");
+                    continue;
+                }
+
+                // Get second number
+                System.out.print("Enter second number: ");
+                String input2 = scanner.nextLine().trim();
+                
+                if (input2.equalsIgnoreCase("exit") || input2.equalsIgnoreCase("quit")) {
+                    System.out.println("\n→ Disconnecting...");
+                    break;
+                }
+
+                // Validate second number
+                double num2;
+                try {
+                    num2 = Double.parseDouble(input2);
+                } catch (NumberFormatException e) {
+                    System.err.println("✗ Invalid number format. Please try again.\n");
+                    continue;
+                }
+
+                // Get operator
+                System.out.print("Enter operator (+, -, *, /): ");
+                String operator = scanner.nextLine().trim();
+                
+                if (operator.equalsIgnoreCase("exit") || operator.equalsIgnoreCase("quit")) {
+                    System.out.println("\n→ Disconnecting...");
+                    break;
+                }
+
+                // Validate operator
+                if (!operator.equals("+") && !operator.equals("-") && 
+                    !operator.equals("*") && !operator.equals("/")) {
+                    System.err.println("✗ Invalid operator. Use +, -, *, or /\n");
+                    continue;
+                }
+
+                // Send calculation request
+                sendCalculation(num1, num2, operator);
+                
+                // Receive and display result
+                receiveResult();
+                
+                System.out.println(); // Empty line for readability
             }
             
         } catch (Exception e) {
-            return "ERROR:Mock calculation failed";
+            System.err.println("✗ Error during communication: " + e.getMessage());
+        } finally {
+            disconnect();
         }
     }
-    
-    // helper class for organization
-    
-    static class CalculationInput {
-        double num1;
-        double num2;
-        char operator;
+
+    /**
+     * Sends a calculation request to the server
+     */
+    private void sendCalculation(double num1, double num2, String operator) {
+        try {
+            System.out.println("\n→ Sending: " + num1 + " " + operator + " " + num2);
+            
+            // Send according to protocol
+            out.println("NUMBER:" + num1);
+            out.println("NUMBER:" + num2);
+            out.println("OPERATOR:" + operator);
+            
+        } catch (Exception e) {
+            System.err.println("✗ Error sending data: " + e.getMessage());
+            connected = false;
+        }
+    }
+
+    /**
+     * Receives and displays the result from the server
+     */
+    private void receiveResult() {
+        try {
+            // Read response from server
+            String response = in.readLine();
+            
+            if (response == null) {
+                System.err.println("✗ Server disconnected");
+                connected = false;
+                return;
+            }
+
+            // Parse response
+            if (response.startsWith("RESULT:")) {
+                String resultValue = response.substring(7).trim();
+                System.out.println("✓ Result: " + resultValue);
+                
+            } else if (response.startsWith("ERROR:")) {
+                String errorMsg = response.substring(6).trim();
+                System.err.println("✗ Server Error: " + errorMsg);
+                
+            } else {
+                System.err.println("✗ Unknown response format: " + response);
+            }
+            
+        } catch (IOException e) {
+            System.err.println("✗ Error receiving result: " + e.getMessage());
+            connected = false;
+        }
+    }
+
+    /**
+     * Disconnects from the server and closes resources
+     */
+    public void disconnect() {
+        try {
+            if (in != null) in.close();
+            if (out != null) out.close();
+            if (socket != null && !socket.isClosed()) {
+                socket.close();
+            }
+            if (scanner != null) scanner.close();
+            
+            connected = false;
+            System.out.println("✓ Disconnected from server");
+            
+        } catch (IOException e) {
+            System.err.println("✗ Error closing connection: " + e.getMessage());
+        }
+    }
+
+    public static void main(String[] args) {
+        TCPCalculationClient client = new TCPCalculationClient();
+        
+        // Connect to server
+        if (client.connect()) {
+            // Start interactive session
+            client.start();
+        } else {
+            System.err.println("\n✗ Failed to connect. Exiting...");
+        }
     }
 }
