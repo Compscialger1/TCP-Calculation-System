@@ -29,7 +29,7 @@ replay_pid*
 
 # Build directories
 build/
-bin/
+
 out/
 target/
 

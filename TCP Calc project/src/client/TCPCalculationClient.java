@@ -24,6 +24,12 @@ public class TCPCalculationClient {
                 // Get calc input from user
                 CalculationInput input = getUserInput(scanner);
                 
+                // Check if user wants to quit
+                if (input == null) {
+                    System.out.println("\n[INFO] Exiting...");
+                    break;
+                }
+                
                 // protocol format 
                 String request = formatRequest(input);
                 System.out.println("\n[DEBUG] Formatted request to send:");
@@ -63,12 +69,19 @@ public class TCPCalculationClient {
     private static CalculationInput getUserInput(Scanner scanner) {
         CalculationInput input = new CalculationInput();
         
+        System.out.println("\n" + "=".repeat(30));
         System.out.println("ENTER CALCULATION");
-
+        System.out.println("=".repeat(30));
+        System.out.println("(Type 'quit' or 'q' to exit at any time)");
         
         input.num1 = getValidNumber(scanner, "Enter first number: ");
+        if (Double.isNaN(input.num1)) return null; // Signal to quit
+        
         input.num2 = getValidNumber(scanner, "Enter second number: ");
+        if (Double.isNaN(input.num2)) return null; // Signal to quit
+        
         input.operator = getValidOperator(scanner);
+        if (input.operator == '\0') return null; // Signal to quit
         
         return input;
     }
@@ -76,8 +89,14 @@ public class TCPCalculationClient {
     private static double getValidNumber(Scanner scanner, String prompt) {
         while (true) {
             System.out.print(prompt);
+            String input = scanner.nextLine().trim();
+            
+            if (input.equalsIgnoreCase("quit") || input.equalsIgnoreCase("q")) {
+                return Double.NaN; // Return NaN to signal quit
+            }
+            
             try {
-                return Double.parseDouble(scanner.nextLine().trim());
+                return Double.parseDouble(input);
             } catch (NumberFormatException e) {
                 System.out.println("[ERROR] Invalid number! Please enter a valid number (e.g., 5, 3.14, -2.5)");
             }
@@ -90,6 +109,10 @@ public class TCPCalculationClient {
         while (true) {
             System.out.print("Enter operator (+, -, *, /): ");
             String input = scanner.nextLine().trim();
+            
+            if (input.equalsIgnoreCase("quit") || input.equalsIgnoreCase("q")) {
+                return '\0'; // Return null character to signal quit
+            }
             
             if (input.length() == 1 && validOperators.contains(input)) {
                 return input.charAt(0);
@@ -158,18 +181,18 @@ public class TCPCalculationClient {
     // response handling
     
     private static void displayResult(String response) {
-    
+        System.out.println("\n" + "=".repeat(30));
         System.out.println("RESULT");
-
+        System.out.println("=".repeat(30));
         
         if (response.startsWith("RESULT:")) {
             String result = response.substring(7);
-            System.out.println(" Success: " + result);
+            System.out.println("✓ Success: " + result);
         } else if (response.startsWith("ERROR:")) {
             String error = response.substring(6);
-            System.out.println("Error: " + error);
+            System.out.println("✗ Error: " + error);
         } else {
-            System.out.println("Unknown response format: " + response);
+            System.out.println("? Unknown response format: " + response);
         }
     }
     
